@@ -72,7 +72,7 @@ export default function RegistrationScreen({ navigation }) {
                             alt='App Logo'
                             resizeMode='contain'
                             style={styles.headerImg}
-                            source={require('./../assets/logo.png')}
+                            source={require('./../assets/logo.jpg')}
                             accessibilityLabel="Logo aplikacije"
                         />
                         <Text style={styles.title}>
