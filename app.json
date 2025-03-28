@@ -1,37 +1,77 @@
 {
   "expo": {
-    "name": "CA_EXPO",
-    "slug": "CA_EXPO",
+    "name": "CA Radno vrijeme",
+    "slug": "CA-Radno-vrijeme",
     "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "caradnovrijeme",
     "splash": {
       "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "ba.gealog.CARadnovrijeme",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ctahk0.CA_EXPO"
+      "package": "ba.gealog.CARadnovrijeme",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_WIFI_STATE",
+        "NEARBY_WIFI_DEVICES"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "serviceWorkerMode": "production",
+      "manifest": {
+        "short_name": "CA Log",
+        "theme_color": "#ffffff",
+        "background_color": "#ffffff",
+        "display": "standalone",
+        "scope": "/",
+        "start_url": "/",
+        "icons": [
+          {
+            "src": "./assets/icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          },
+          {
+            "src": "./assets/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+          }
+        ]
+      }
     },
     "extra": {
       "eas": {
-        "projectId": "f069116a-7245-45d0-a523-0de0bd4143df"
+        "projectId": "78919548-1877-497e-be05-869d3a5fb20d"
       }
     },
     "plugins": [
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      "expo-router",
+      "expo-notifications"
+    ],
+    "updates": {
+      "url": "https://u.expo.dev/78919548-1877-497e-be05-869d3a5fb20d",
+      "enabled": true,
+      "fallbackToCacheTimeout": 3000
+    }
   }
 }
