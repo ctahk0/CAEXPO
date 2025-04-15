@@ -3,13 +3,12 @@ import {
     View, Text, StyleSheet, SafeAreaView, ScrollView,
     TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import DropDownPicker from 'react-native-dropdown-picker';
 import NetInfo from "@react-native-community/netinfo";
 import { getCurrentWifiSSID } from '../utils/wifi-check';
 import axios from 'axios';
 import { saveData, getData } from '../utils/storage';
 import { useRouter } from 'expo-router';
-import * as Updates from 'expo-updates';
 import Logo from "../Components/Logo";
 import WaveFooter from "../Components/WaveFooter";
 import { EXPO_URL, EXPO_KEY } from '@env';
@@ -30,6 +29,11 @@ export default function UserSelectScreen() {
     const [wifiSSID, setWifiSSID] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const ssidRef = useRef(null);
+
+    const [pjOpen, setPjOpen] = useState(false);
+    const [pjItems, setPjItems] = useState([]);
+    const [radnikOpen, setRadnikOpen] = useState(false);
+    const [radnikItems, setRadnikItems] = useState([]);
 
     useEffect(() => {
         const fetchInitialSSID = async () => {
@@ -72,6 +76,8 @@ export default function UserSelectScreen() {
                 setKorisnici(response.data);
                 const unikatnePJ = [...new Set(response.data.map(k => k.PJ))].sort((a, b) => a.localeCompare(b));
                 setPjList(unikatnePJ);
+                setPjItems(unikatnePJ.map(pj => ({ label: pj, value: pj })));
+
             } catch (error) {
                 Toast.show({ type: 'error', text1: 'Greška', text2: 'Neuspešno učitavanje podataka. Pokušajte ponovo.' });
             } finally {
@@ -97,9 +103,12 @@ export default function UserSelectScreen() {
 
     useEffect(() => {
         if (izabranaPJ) {
-            const filtrirani = korisnici.filter(k => k.PJ === izabranaPJ);
+            const filtrirani = korisnici.filter(k => k.PJ === izabranaPJ)
+                .sort((a, b) => a.Radnik.localeCompare(b.Radnik));
             setFiltriraniRadnici(filtrirani);
             scrollViewRef.current?.scrollTo({ y: 250, animated: true });
+            setRadnikItems(filtrirani.map(r => ({ label: r.Radnik, value: r.Radnik })));
+
         } else {
             setFiltriraniRadnici([]);
         }
@@ -198,7 +207,22 @@ export default function UserSelectScreen() {
                     </View>
                     <View style={styles.content}>
                         <Text style={styles.labels}>Izaberite poslovnicu</Text>
-                        <Picker
+                        <DropDownPicker
+                            open={pjOpen}
+                            value={izabranaPJ}
+                            items={pjItems}
+                            setOpen={setPjOpen}
+                            setValue={setIzabranaPJ}
+                            setItems={setPjItems}
+                            placeholder="Izaberite poslovnicu"
+                            // listMode="MODAL"
+                            listMode="SCROLLVIEW"
+                            searchable={false}
+                            zIndex={3000}
+                            zIndexInverse={1000}
+                        />
+
+                        {/* <Picker
                             selectedValue={izabranaPJ}
                             onValueChange={setIzabranaPJ}
                             style={styles.picker}
@@ -207,8 +231,28 @@ export default function UserSelectScreen() {
                             {pjList.map((pj, index) => (
                                 <Picker.Item key={index} label={pj} value={pj} />
                             ))}
-                        </Picker>
+                        </Picker> */}
                         {izabranaPJ && (
+                            <>
+                                <Text style={styles.labels}>Izaberite vaše ime</Text>
+                                <DropDownPicker
+                                    open={radnikOpen}
+                                    value={izabraniRadnik}
+                                    items={radnikItems}
+                                    setOpen={setRadnikOpen}
+                                    setValue={setIzabraniRadnik}
+                                    setItems={setRadnikItems}
+                                    placeholder="Vaše ime i prezime..."
+                                    // listMode="MODAL"
+                                    listMode="SCROLLVIEW"
+                                    searchable={false}
+                                    zIndex={2000}
+                                    zIndexInverse={1000}
+                                />
+                            </>
+                        )}
+
+                        {/* {izabranaPJ && (
                             <>
                                 <Text style={styles.labels}>Izaberite vaše ime</Text>
                                 <Picker
@@ -222,7 +266,7 @@ export default function UserSelectScreen() {
                                     ))}
                                 </Picker>
                             </>
-                        )}
+                        )} */}
                         {izabraniRadnik && (
                             <TouchableOpacity style={styles.btn1} onPress={sacuvajIzbor} disabled={isLoading}>
                                 <Text style={styles.btnText}>Sačuvaj izbor</Text>
@@ -248,7 +292,7 @@ const styles = StyleSheet.create({
     subtitle: { fontSize: 15, fontWeight: '500', color: '#929292' },
     labels: { fontSize: 18, fontWeight: '500', color: '#929292', paddingBottom: 10 },
     picker: { backgroundColor: "white", elevation: 10, marginBottom: 35, fontSize: 16, minHeight: 35 },
-    btn1: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'green', borderColor: 'green' },
+    btn1: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'green', borderColor: 'green', marginTop: 40 },
     btnText: { fontSize: 18, lineHeight: 26, fontWeight: '600', color: '#fff' },
     reloadButton: { backgroundColor: 'red', padding: 10, borderRadius: 5, marginTop: 10, alignSelf: 'center' },
     reloadText: { color: 'white', fontWeight: 'bold' },

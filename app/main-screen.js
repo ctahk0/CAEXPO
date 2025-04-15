@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { AppState } from 'react-native';
 import { saveData, getData } from '../utils/storage';
 import axios from 'axios';
 import NetInfo from "@react-native-community/netinfo";
 import * as Updates from 'expo-updates';
-import { Picker } from "@react-native-picker/picker";
+// import { Picker } from "@react-native-picker/picker";
+import DropDownPicker from 'react-native-dropdown-picker';
 import Logo from "../Components/Logo";
 import WaveFooter from '../Components/WaveFooter';
 import { EXPO_URL, EXPO_KEY } from '@env';
@@ -30,6 +32,59 @@ export default function MainScreen() {
   const [isAllowedNetwork, setIsAllowedNetwork] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [pjOpen, setPJOpen] = useState(false);
+  const [pjValue, setPJValue] = useState(null);
+  const [pjItems, setPJItems] = useState([]);
+
+  const refreshMainScreen = async () => {
+    setIsLoading(true);
+    try {
+      const [radnik, pj, zadnjiStatus, zadnjeVrijeme, storedPJList] = await Promise.all([
+        getData('izabraniRadnik'),
+        getData('izabranaPJ'),
+        getData('zadnjiStatus'),
+        getData('zadnjeVrijeme'),
+        getPJList(),
+      ]);
+
+      setPjList(storedPJList);
+      setPJItems(storedPJList.map(pj => ({ label: pj, value: pj })));
+      setPJValue(pj || null);
+      setIzabraniRadnik(radnik || null);
+      setIzabranaPJ(pj || null);
+
+      const now = new Date();
+      const lastTime = zadnjeVrijeme ? new Date(zadnjeVrijeme) : null;
+
+      if (zadnjiStatus === 'prijava' && lastTime) {
+        const isDifferentDay = now.toDateString() !== lastTime.toDateString();
+        if (isDifferentDay) {
+          setStatus(null);
+          setVrijeme(null);
+          saveData('zadnjiStatus', null);
+          saveData('zadnjeVrijeme', null);
+        } else {
+          setStatus(zadnjiStatus);
+          setVrijeme(zadnjeVrijeme);
+        }
+      } else {
+        setStatus(zadnjiStatus || null);
+        setVrijeme(zadnjeVrijeme || null);
+      }
+
+      if (pj) scrollViewRef.current?.scrollTo({ y: 100, animated: true });
+      if (zadnjeVrijeme && zadnjiStatus === 'prijava') {
+        const razlikaUSekundama = Math.floor((new Date() - new Date(zadnjeVrijeme)) / 1000);
+        setProtekloVrijeme(razlikaUSekundama);
+      }
+    } catch (error) {
+      Toast.show({ type: 'error', text1: 'Greška', text2: `Inicijalizacija ekrana neuspešna: ${error.message}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   const getPJList = async () => {
     try {
       const jsonValue = await getData('pjList');
@@ -41,37 +96,20 @@ export default function MainScreen() {
   };
 
   useEffect(() => {
-    const initializeScreen = async () => {
-      try {
-        const [radnik, pj, zadnjiStatus, zadnjeVrijeme, storedPJList] = await Promise.all([
-          getData('izabraniRadnik'),
-          getData('izabranaPJ'),
-          getData('zadnjiStatus'),
-          getData('zadnjeVrijeme'),
-          getPJList(),
-        ]);
-
-        setPjList(storedPJList);
-        setIzabraniRadnik(radnik || null);
-        setIzabranaPJ(pj || null);
-        setStatus(zadnjiStatus || null);
-        if (pj) scrollViewRef.current?.scrollTo({ y: 100, animated: true });
-        if (zadnjeVrijeme) {
-          setVrijeme(zadnjeVrijeme);
-          if (zadnjiStatus === 'prijava') {
-            const razlikaUSekundama = Math.floor((new Date() - new Date(zadnjeVrijeme)) / 1000);
-            setProtekloVrijeme(razlikaUSekundama);
-          }
-        }
-      } catch (error) {
-        Toast.show({ type: 'error', text1: 'Greška', text2: `Inicijalizacija ekrana neuspešna: ${error.message}` });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeScreen();
+    refreshMainScreen();
   }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        console.log("📲 App je aktivan ponovo, radim refresh...");
+        refreshMainScreen();
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
 
   useEffect(() => {
     const fetchAllowedSSIDs = async () => {
@@ -174,6 +212,15 @@ export default function MainScreen() {
           </Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          onPress={() => status !== 'prijava' && router.push('/timelog-screen')}
+          disabled={status === 'prijava'}
+          style={[styles.settingsButton, { opacity: status === 'prijava' ? 0.5 : 1 }]}
+        >
+          <Text style={[styles.settingsText, { color: status === 'prijava' ? 'gray' : 'black' }]}>
+            🕒 Pregled
+          </Text>
+        </TouchableOpacity>
         {Platform.OS !== 'web' && (
           <View>
             <TouchableOpacity onPress={() => Updates.reloadAsync()} style={styles.reloadButton}>
@@ -188,79 +235,93 @@ export default function MainScreen() {
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
-      <ScrollView
-        ref={scrollViewRef}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Logo />
-            <Text style={styles.title}>Dobrodošli {izabraniRadnik}!</Text>
-            {vrijeme && (
-              <Text style={styles.subtitle}>
-                Zadnja {status === 'prijava' ? 'prijava' : 'odjava'}: {new Date(vrijeme).toLocaleString()}
-              </Text>
-            )}
-            {status === 'prijava' && (
-              <Text style={styles.subtitle}>
-                Prijavljeni ste: {formatirajVrijeme(protekloVrijeme)}
-              </Text>
-            )}
-            {!isAllowedNetwork && Platform.OS !== 'web' && (
-              <View>
-                <Text style={styles.wifiText}>📡 WiFi: {wifiSSID || "Nema mreže"}</Text>
-                <Text style={styles.warningText}>
-                  ⚠️ Povežite se na dozvoljenu WiFi mrežu za prijavu/odjavu!
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Logo />
+              <Text style={styles.title}>Dobrodošli {izabraniRadnik}!</Text>
+              {vrijeme && (
+                <Text style={styles.subtitle}>
+                  Zadnja {status === 'prijava' ? 'prijava' : 'odjava'}: {new Date(vrijeme).toLocaleString()}
                 </Text>
+              )}
+              {status === 'prijava' && (
+                <Text style={styles.subtitle}>
+                  Prijavljeni ste: {formatirajVrijeme(protekloVrijeme)}
+                </Text>
+              )}
+              {!isAllowedNetwork && Platform.OS !== 'web' && (
+                <View>
+                  <Text style={styles.wifiText}>📡 WiFi: {wifiSSID || "Nema mreže"}</Text>
+                  <Text style={styles.warningText}>
+                    ⚠️ Povežite se na dozvoljenu WiFi mrežu za prijavu/odjavu!
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={{ zIndex: 1000, marginBottom: pjOpen ? 70 : 20 }}>
+              <View>
+                <Text style={styles.labels}>Izaberite poslovnicu</Text>
+                {pjList.length > 0 ? (
+                  <DropDownPicker
+                    open={pjOpen}
+                    value={pjValue}
+                    items={pjItems}
+                    setOpen={setPJOpen}
+                    setValue={(callback) => {
+                      const selectedValue = callback(pjValue);
+                      setPJValue(selectedValue);
+                      setIzabranaPJ(selectedValue);
+                      setPJOpen(false); // ✅ automatski zatvori
+                    }}
+
+                    setItems={setPJItems}
+                    placeholder="Poslovnica..."
+                    disabled={(status === 'prijava' || (!isAllowedNetwork && Platform.OS !== 'web'))}
+                    zIndex={1000}
+                    searchable={false}
+                    style={{ marginBottom: pjOpen ? 150 : 10 }}
+                    dropDownContainerStyle={{ zIndex: 2000 }}
+                    listMode="SCROLLVIEW"
+                  />
+                ) : (
+                  <Text style={styles.loadingText}>Učitavanje...</Text>
+                )}
               </View>
-            )}
+            </View>
+            <View style={styles.formAction}>
+              {status !== 'prijava' && (
+                <TouchableOpacity
+                  style={isAllowedNetwork || Platform.OS === 'web' ? styles.btn1 : styles.btnDisabled}
+                  onPress={() => timelog(true)}
+                  disabled={!isAllowedNetwork && Platform.OS !== 'web' || isLoading}
+                >
+                  <Text style={styles.btnText}>Prijavi se na posao</Text>
+                </TouchableOpacity>
+              )}
+              {status === 'prijava' && (
+                <TouchableOpacity
+                  style={isAllowedNetwork || Platform.OS === 'web' ? styles.btn2 : styles.btnDisabled}
+                  onPress={() => timelog(false)}
+                  disabled={!isAllowedNetwork && Platform.OS !== 'web' || isLoading}
+                >
+                  <Text style={styles.btnText}>Odjavi se sa posla</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-          <View>
-            <Text style={styles.labels}>Izaberite poslovnicu</Text>
-            {pjList.length > 0 ? (
-              <Picker
-                selectedValue={izabranaPJ}
-                onValueChange={setIzabranaPJ}
-                style={[
-                  styles.picker,
-                  (status === 'prijava' || (!isAllowedNetwork && Platform.OS !== 'web')) && styles.disabledPicker,
-                ]}
-                enabled={(!status || status !== 'prijava') && (isAllowedNetwork || Platform.OS === 'web')}
-              >
-                <Picker.Item label="Poslovnica..." value="" />
-                {pjList.map((pj, index) => (
-                  <Picker.Item key={index} label={pj} value={pj} />
-                ))}
-              </Picker>
-            ) : (
-              <Text style={styles.loadingText}>Učitavanje...</Text>
-            )}
-          </View>
-          <View style={styles.formAction}>
-            {status !== 'prijava' && (
-              <TouchableOpacity
-                style={isAllowedNetwork || Platform.OS === 'web' ? styles.btn1 : styles.btnDisabled}
-                onPress={() => timelog(true)}
-                disabled={!isAllowedNetwork && Platform.OS !== 'web' || isLoading}
-              >
-                <Text style={styles.btnText}>Prijavi se na posao</Text>
-              </TouchableOpacity>
-            )}
-            {status === 'prijava' && (
-              <TouchableOpacity
-                style={isAllowedNetwork || Platform.OS === 'web' ? styles.btn2 : styles.btnDisabled}
-                onPress={() => timelog(false)}
-                disabled={!isAllowedNetwork && Platform.OS !== 'web' || isLoading}
-              >
-                <Text style={styles.btnText}>Odjavi se sa posla</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </ScrollView>
+        </ScrollView >
+      </KeyboardAvoidingView >
       <View style={styles.footer}><WaveFooter /></View>
-    </View>
+    </View >
   );
 }
 
@@ -271,6 +332,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 2,
+    paddingTop: Platform.OS === 'ios' ? 50 : 10,
+    zIndex:998,
   },
   reloadButton: { padding: 10 },
   reloadText: { fontSize: 15 },
@@ -289,10 +352,10 @@ const styles = StyleSheet.create({
   picker: { backgroundColor: "white", elevation: 5, marginBottom: 35, fontSize: 16, minHeight: 30 },
   disabledPicker: { backgroundColor: "#e0e0e0", borderColor: "#b0b0b0", opacity: 0.6 },
   loadingText: { textAlign: 'center', marginTop: 20, color: "gray" },
-  formAction: { marginTop: 4, marginBottom: 16 },
-  btn1: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'green', borderColor: 'green' },
-  btn2: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'red', borderColor: 'red' },
-  btnDisabled: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'gray', borderColor: 'darkgray', opacity: 0.5 },
+  formAction: { marginTop: 4, marginBottom: 16, zIndex: 1005 },
+  btn1: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'green', borderColor: 'green', zIndex: 300 },
+  btn2: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'red', borderColor: 'red', zIndex: 300 },
+  btnDisabled: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderRadius: 30, paddingVertical: 20, paddingHorizontal: 20, borderWidth: 1, backgroundColor: 'gray', borderColor: 'darkgray', opacity: 0.5, zIndex: 300 },
   btnText: { fontSize: 18, lineHeight: 26, fontWeight: '600', color: '#fff' },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0 },
 });

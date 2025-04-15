@@ -18,7 +18,19 @@
       "supportsTablet": true,
       "bundleIdentifier": "ba.gealog.CARadnovrijeme",
       "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Lokacija je potrebna za čitanje WiFi mreže.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Lokacija je potrebna za automatsku prijavu/odjavu.",
+        "NSLocationAlwaysUsageDescription": "Lokacija je potrebna za automatsku prijavu/odjavu.",
+        "NSLocationUsageDescription": "Lokacija je potrebna za WiFi funkcionalnosti.",
+        "NSLocalNetworkUsageDescription": "permission to join other networks",
+        "UIBackgroundModes": [
+          "location",
+          "location"
+        ],
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.networking.wifi-info": true
       }
     },
     "android": {

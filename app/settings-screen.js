@@ -5,7 +5,7 @@ import DatePickerComponent from '../Components/DatePicker';
 import axios from 'axios';
 import { EXPO_URL, EXPO_KEY } from '@env';
 import { useRouter } from 'expo-router';
-import { saveData, getData, removeData } from '../utils/storage';
+import { getData, removeData } from '../utils/storage';
 import Toast from 'react-native-toast-message';
 import NotificationsSettings from '../Components/NotificationsSettings';
 
@@ -34,10 +34,19 @@ export default function SettingsScreen() {
       Toast.show({ type: 'error', text1: 'Greška', text2: 'Nema izabranog radnika.' });
       return;
     }
-    if (endDate < startDate) {
-      Toast.show({ type: 'error', text1: 'Greška', text2: 'Datum kraja ne može biti pre početka!' });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Postavljamo sate, minute, sekunde i milisekunde na 0
+
+    // Provjera da startDate nije u prošlosti
+    if (startDate < today) {
+      Toast.show({ type: 'error', text1: 'Greška', text2: 'Datum početka ne može biti u prošlosti!' });
       return;
     }
+    if (endDate < startDate) {
+      Toast.show({ type: 'error', text1: 'Greška', text2: 'Datum kraja ne može biti prije datuma početka!' });
+      return;
+    }
+    console.log(startDate);
 
     setIsLoading(true);
     try {
