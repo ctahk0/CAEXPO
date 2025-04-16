@@ -5,7 +5,7 @@ import {
     FlatList,
     ActivityIndicator,
     TouchableOpacity,
-    StyleSheet,
+    StyleSheet, Platform
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
@@ -157,6 +157,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 10,
+        paddingTop: Platform.OS === 'ios' ? 50 : 10,
+        zIndex: 998,
     },
     headerTitle: { fontSize: 18, fontWeight: 'bold', flex: 1, textAlign: 'center' },
     picker: {

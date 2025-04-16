@@ -15,8 +15,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
       "bundleIdentifier": "ba.gealog.CARadnovrijeme",
+      "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Lokacija je potrebna za čitanje WiFi mreže.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Lokacija je potrebna za automatsku prijavu/odjavu.",

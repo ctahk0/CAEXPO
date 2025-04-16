@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { Picker } from "@react-native-picker/picker";
 import DatePickerComponent from '../Components/DatePicker';
 import axios from 'axios';
@@ -225,7 +225,14 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5", padding: 10 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 0 },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingVertical: 0,
+    paddingTop: Platform.OS === 'ios' ? 50 : 10,
+    zIndex:998, 
+  },
   headerTitle: { fontSize: 18, fontWeight: 'bold', flex: 1, textAlign: 'center' },
   closeButton: { padding: 15 },
   closeButtonText: { fontSize: 20, color: 'black', fontWeight: 'bold' },
