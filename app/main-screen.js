@@ -102,7 +102,7 @@ export default function MainScreen() {
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
-        console.log("📲 App je aktivan ponovo, radim refresh...");
+        // console.log("📲 App je aktivan ponovo, radim refresh...");
         refreshMainScreen();
       }
     });

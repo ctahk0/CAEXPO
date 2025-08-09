@@ -66,7 +66,7 @@ export default function RootLayout() {
           await Updates.reloadAsync();
         }
       } catch (e) {
-        console.log('❌ Greška u setup-u:', e);
+        // console.log('❌ Greška u setup-u:', e);
         Toast.show({
           type: 'error',
           text1: 'Greška',

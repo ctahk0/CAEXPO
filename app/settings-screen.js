@@ -46,7 +46,6 @@ export default function SettingsScreen() {
       Toast.show({ type: 'error', text1: 'Greška', text2: 'Datum kraja ne može biti prije datuma početka!' });
       return;
     }
-    console.log(startDate);
 
     setIsLoading(true);
     try {

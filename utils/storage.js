@@ -6,10 +6,13 @@ import { Platform } from 'react-native';
 // Spremanje podataka
 export const saveData = async (key, value) => {
     try {
+        // console.log(key, value);
         if (Platform.OS === 'web') {
             await AsyncStorage.setItem(key, value);
         } else {
-            await SecureStore.setItemAsync(key, value);
+            const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+            await SecureStore.setItemAsync(key, stringValue);
+            // await SecureStore.setItemAsync(key, value);
         }
     } catch (error) {
         console.error("❌ Greška pri čuvanju podataka:", error);

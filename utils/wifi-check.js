@@ -15,12 +15,12 @@ export async function getCurrentWifiSSID() {
     try {
         const state = await NetInfo.fetch();
         if (state.type === "wifi" && state.details?.ssid) {
-            console.log("📡 SSID iz NetInfo:", state.details.ssid);
+            // console.log("📡 SSID iz NetInfo:", state.details.ssid);
             return state.details.ssid;
         }
 
         const ssid = await NetworkInfo.getSSID();
-        console.log("📡 SSID iz NetworkInfo:", ssid);
+        // console.log("📡 SSID iz NetworkInfo:", ssid);
         return ssid || null;
     } catch (error) {
         console.error("❌ Greška pri dohvatanju SSID-a:", error);
@@ -47,8 +47,8 @@ export async function isConnectedToAllowedNetwork(allowedSSIDs) {
         .filter(Boolean);
 
     {
-        console.log("📡 Dozvoljeni SSID-ovi:", allowedSSIDNames);
-        console.log("📶 Trenutni SSID:", currentSSID);
+        // console.log("📡 Dozvoljeni SSID-ovi:", allowedSSIDNames);
+        // console.log("📶 Trenutni SSID:", currentSSID);
     }
 
     return allowedSSIDNames.some((ssid) => currentSSID.toLowerCase().includes(ssid.toLowerCase()));

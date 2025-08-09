@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 // ⚙️ Postavi handler za Android (neophodno)
 if (Platform.OS !== 'web') {
-  console.log('Radi handler za notifikacije!!!');
+  // console.log('Radi handler za notifikacije!!!');
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,
@@ -25,7 +25,7 @@ async function createNotificationChannel() {
         enableLights: true,
         lightColor: '#FF231F7C',
       });
-      console.log('✅ Android notifikacioni kanal kreiran!');
+      // console.log('✅ Android notifikacioni kanal kreiran!');
     } catch (error) {
       console.error('❌ Greška pri kreiranju notifikacionog kanala:', error);
     }
@@ -47,7 +47,7 @@ export async function requestNotificationPermissions() {
     return false;
   }
   
-  console.log('✅ Dozvole za notifikacije su date');
+  // console.log('✅ Dozvole za notifikacije su date');
   return true;
 }
 
@@ -68,7 +68,7 @@ export async function scheduleDailyNotification(hour, minute, days = null) {
     for (const day of days) {
       const weekday = dayMap[day];
       if (!weekday) {
-        console.warn(`❌ Nepoznat dan: ${day}`);
+        // console.warn(`❌ Nepoznat dan: ${day}`);
         continue;
       }
 
@@ -88,13 +88,13 @@ export async function scheduleDailyNotification(hour, minute, days = null) {
             repeats: true,
           },
         });
-        console.log(`✅ Notifikacija zakazana za ${day} u ${hour}:${minute}, ID: ${notificationId}`);
+        // console.log(`✅ Notifikacija zakazana za ${day} u ${hour}:${minute}, ID: ${notificationId}`);
       } catch (error) {
         console.error(`❌ Greška pri zakazivanju notifikacije za ${day}:`, error);
       }
     }
   } else {
-    console.log('🗑️ Otkazivanje svih notifikacija jer nema izabranih dana.');
+    // console.log('🗑️ Otkazivanje svih notifikacija jer nema izabranih dana.');
     await cancelAllNotifications();
   }
 
@@ -105,7 +105,7 @@ export async function scheduleDailyNotification(hour, minute, days = null) {
 export async function listScheduledNotifications() {
   try {
     const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
-    console.log(`📋 Trenutno zakazane notifikacije: ${scheduledNotifications.length > 0 ? JSON.stringify(scheduledNotifications, null, 2) : '❌ Nema zakazanih notifikacija!'}`);
+    // console.log(`📋 Trenutno zakazane notifikacije: ${scheduledNotifications.length > 0 ? JSON.stringify(scheduledNotifications, null, 2) : '❌ Nema zakazanih notifikacija!'}`);
     return scheduledNotifications;
   } catch (error) {
     console.error('❌ Greška pri dohvatanju zakazanih notifikacija:', error);
@@ -121,7 +121,7 @@ export async function cancelAllNotifications() {
   }
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
-    console.log('🗑️ Sve zakazane notifikacije su obrisane.');
+    // console.log('🗑️ Sve zakazane notifikacije su obrisane.');
     return true;
   } catch (error) {
     console.error('❌ Greška pri otkazivanju notifikacija:', error);

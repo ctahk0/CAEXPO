@@ -123,13 +123,7 @@ const TimeLogScreen = () => {
                     })}
                 </Picker>
             </View>
-            <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, backgroundColor: '#eee' }}>
-                <Text style={{ flex: 1, fontWeight: 'bold' }}>Datum</Text>
-                <Text style={{ flex: 1, fontWeight: 'bold' }}>Prijava</Text>
-                <Text style={{ flex: 1, fontWeight: 'bold' }}>Odjava</Text>
-                <Text style={{ flex: 1, fontWeight: 'bold' }}>Radni sati</Text>
-                <Text style={{ flex: 1, fontWeight: 'bold' }}>Status</Text>
-            </View>
+            {renderHeader()}
             {loading ? (
                 <ActivityIndicator size="large" color="#0000ff" />
             ) : logovi.length === 0 ? (

@@ -7,7 +7,7 @@ export default function DatePickerComponent({ onDateChange }) {
     const [showPicker, setShowPicker] = useState(false);
 
     const handleDateChange = (event, selectedDate) => {
-        console.log(event, selectedDate);
+        // console.log(event, selectedDate);
         if (selectedDate) {
             setDate(selectedDate);
             setShowPicker(false); // Zatvara picker nakon izbora datuma
